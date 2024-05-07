@@ -1,0 +1,54 @@
+---
+- name: Generate Deployment files
+  hosts: localhost
+  gather_facts: false
+  vars:
+    num_deployments_besteffort: 3  # Número total de deployments a serem criados besteffort
+    num_deployments_burstable: 3  # Número total de deployments a serem criados burstable
+    num_deployments_guaranteed: 3  # Número total de deployments a serem criados guaranteed
+    num_replicas_besteffort: 20  # Número total de deployments a serem criados besteffort
+    num_replicas_burstable: 30  # Número total de deployments a serem criados burstable
+    num_replicas_guaranteed: 10  # Número total de deployments a serem criados guaranteed
+  tasks:
+    - name: Create deploy directory
+      ansible.builtin.file:
+        path: deploy
+        state: directory
+
+    - name: Generate deployments besteffort
+      ansible.builtin.template:
+        src: templates/besteffort.j2
+        dest: "deploy/besteffort-{{ item }}.yaml"
+      loop: "{{ range(num_deployments_besteffort) }}"
+      run_once: true
+      delegate_to: localhost
+      vars:
+        deployment_name: "besteffort-{{ item }}"
+        replicas: "{{ num_replicas_besteffort }}"
+
+    - name: Generate deployments burstable
+      ansible.builtin.template:
+        src: templates/burstable.j2
+        dest: "deploy/burstable-{{ item }}.yaml"
+      loop: "{{ range(num_deployments_besteffort) }}"
+      run_once: true
+      delegate_to: localhost
+      vars:
+        deployment_name: "burstable-{{ item }}"
+        request: "{{ 100 * (range(1, 21) | random) }}"
+        replicas: "{{ num_replicas_burstable }}"
+
+
+
+
+    - name: Generate deployments guaranteed
+      ansible.builtin.template:
+        src: templates/guaranteed.j2
+        dest: "deploy/guaranteed-{{ item }}.yaml"
+      loop: "{{ range(num_deployments_guaranteed) }}"
+      run_once: true
+      delegate_to: localhost
+      vars:
+        deployment_name: "guaranteed-{{ item }}"
+        request: "{{ 100 * (range(1, 21) | random) }}"
+        replicas: "{{ num_replicas_guaranteed }}"

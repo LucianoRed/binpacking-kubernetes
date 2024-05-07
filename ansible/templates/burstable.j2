@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ deployment_name }}"
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: debugocp
+  template:
+    metadata:
+      labels:
+        app: debugocp
+    spec:
+      containers:
+        - name: debugocp
+          image: docker.io/lasher/busybox
+          resources:
+            requests:
+              cpu: "{{ request }}m"
+
