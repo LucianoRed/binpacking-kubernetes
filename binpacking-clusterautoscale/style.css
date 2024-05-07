@@ -1,0 +1,17 @@
+.bin {
+    width: 100px;
+    height: 300px;
+    border: 2px solid black;
+    margin: 10px;
+    float: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.item {
+    width: 100%;
+    position: relative;
+    border: 1px solid red;
+    text-align: center;
+    background-color: lightblue;
+}

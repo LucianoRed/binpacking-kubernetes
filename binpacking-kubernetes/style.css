@@ -1,0 +1,42 @@
+.bin {
+    width: 100px;
+    height: 300px;
+    border: 2px solid black;
+    margin: 10px;
+    float: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.item {
+    width: 100%;
+    position: relative;
+    border: 1px solid red;
+    text-align: center;
+    background-color: lightblue;
+}
+
+.unallocated {
+    border: 1px solid red; /* borda vermelha para destaque */
+    background-color: pink; /* cor de fundo rosa para fácil identificação */
+    color: black; /* cor do texto */
+    text-align: center; /* centralizar o texto */
+}
+
+.unallocated-bin {
+    width: 100px;
+    height: auto; /* Altura automática para acomodar qualquer número de itens */
+    border: 2px solid red; /* Borda vermelha para destaque */
+    background-color: pink; /* Fundo rosa */
+    margin: 10px;
+    float: left;
+    position: relative;
+}
+
+.unallocated-item {
+    width: 100%;
+    border: 1px solid darkred; /* Borda escura para itens não alocados */
+    background-color: lightpink; /* Fundo mais claro para itens dentro do bin não alocado */
+    text-align: center; /* Centralizar texto */
+    margin-top: 2px; /* Espaço entre itens */
+}
