@@ -1,0 +1,38 @@
+:root{--bg:#081026;--card:#0f1724;--muted:#9aa4b2;--accent:#e53e3e}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(180deg,#071025,#081026);color:#e6eef6}
+.container{max-width:1200px;margin:24px auto;padding:18px}
+.site-header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.rh-logo{height:64px}
+.controls{display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column}
+.field label{font-size:0.85rem;color:var(--muted);margin-bottom:6px}
+.field input{padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+.actions{margin-left:auto;display:flex;gap:8px}
+.btn{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+.btn.primary{background:var(--accent);color:white;border:none}
+.explain{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin-bottom:12px}
+.visual{display:flex;gap:16px}
+.nodes{display:flex;flex-direction:column;gap:12px;flex:1}
+.node{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.node-title{font-weight:700;margin-bottom:8px}
+.node-bar{height:26px;background:rgba(255,255,255,0.03);border-radius:6px;overflow:hidden;margin-bottom:8px}
+.node-used{height:100%;background:linear-gradient(90deg,#90cdf4,#63b3ed);display:flex;align-items:center;justify-content:center;color:#032033;font-weight:700}
+.pod-list{display:flex;flex-wrap:wrap;gap:6px}
+.pod{padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02);font-size:0.9rem}
+.pod-qos{margin-left:8px;padding:2px 6px;border-radius:6px;font-weight:700}
+.pod-qos.BestEffort{background:#ffd6d6;color:#5a0b0b}
+.pod-qos.Burstable{background:#fff2d6;color:#5a3f00}
+.pod-qos.Guaranteed{background:#d6ffea;color:#004a2d}
+.side{width:360px;display:flex;flex-direction:column;gap:12px}
+.panel{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.issue.evicted{color:#ffd6d6}
+.issue.unsched{color:#ffd9b3}
+.decision{font-size:0.9rem;margin-bottom:6px}
+.decision-hdr{margin-top:8px;font-weight:700;color:var(--muted)}
+.decision-d{background:rgba(255,255,255,0.01);padding:8px;border-radius:6px;margin-bottom:8px}
+.cand-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cand{padding:4px 6px;border-radius:6px;background:rgba(255,255,255,0.02);font-size:0.8rem}
+.site-footer{text-align:center;margin-top:14px;color:var(--muted)}
+
+@media (max-width:900px){.visual{flex-direction:column}.side{width:100%}.rh-logo{height:56px}}
