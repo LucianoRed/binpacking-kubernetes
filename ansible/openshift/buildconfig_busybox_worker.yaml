@@ -1,0 +1,34 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: busybox-worker
+  namespace: demo-build
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: busybox-worker
+  namespace: demo-build
+spec:
+  runPolicy: Serial
+  source:
+    type: Binary
+  apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    name: busybox-worker
+    namespace: demo-build
+  spec:
+    runPolicy: Serial
+    source:
+      type: Binary
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: 'python:3.11'
+    output:
+      to:
+        kind: ImageStreamTag
+        name: busybox-worker:latest
+    resources: {}

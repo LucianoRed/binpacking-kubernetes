@@ -1,0 +1,26 @@
+---
+- name: Destroy generated namespaces and cleanup
+  hosts: localhost
+  gather_facts: false
+  vars:
+    namespace_prefix: "demo"
+    num_namespaces: 5
+    image_name: "local/busybox-worker:latest"
+  tasks:
+    - name: Delete namespaces created by the simulation
+      ansible.builtin.shell: |
+        for i in $(seq 0 $(( {{ num_namespaces }} - 1 ))); do
+          ns="{{ namespace_prefix }}-$i"; kubectl delete namespace "$ns" --ignore-not-found=true;
+        done
+      register: ns_delete
+      changed_when: ns_delete.rc == 0
+
+    - name: Remove generated deploy directories
+      ansible.builtin.file:
+        path: deploy
+        state: absent
+
+    - name: Remove local image
+      ansible.builtin.command:
+        cmd: "docker rmi -f {{ image_name }}"
+      ignore_errors: true

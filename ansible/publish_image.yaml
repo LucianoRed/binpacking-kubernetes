@@ -1,0 +1,43 @@
+---
+- name: Publish local worker image to registry
+  hosts: localhost
+  gather_facts: false
+  vars:
+    local_tag: "local/busybox-worker:latest"
+    registry_image: ""
+    registry: "docker.io"
+    registry_user: ""
+    registry_password: ""
+    build_image: false
+  tasks:
+    - name: Build local image (optional)
+      ansible.builtin.command:
+        cmd: "docker build -t {{ local_tag }} ansible/docker-image-busybox"
+      when: build_image
+
+    - name: Require registry_image variable
+      ansible.builtin.assert:
+        that:
+          - registry_image != ''
+        fail_msg: "You must provide registry_image (e.g. myuser/busybox-worker:latest)"
+
+    - name: Login to registry
+      ansible.builtin.command:
+        cmd: "docker login {{ registry }} -u {{ registry_user }} -p '{{ registry_password }}'"
+      no_log: true
+
+    - name: Tag image for registry
+      ansible.builtin.command:
+        cmd: "docker tag {{ local_tag }} {{ registry_image }}"
+
+    - name: Push image to registry
+      ansible.builtin.command:
+        cmd: "docker push {{ registry_image }}"
+
+    - name: Show pushed image
+      ansible.builtin.debug:
+        msg: "Pushed {{ registry_image }}"
+
+    - name: Suggest next run command
+      ansible.builtin.debug:
+        msg: "Run the simulation with: ansible-playbook ansible/run_simulation.yaml -e \"image_name={{ registry_image }} build_image=false\""

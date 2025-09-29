@@ -2,17 +2,28 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ deployment_name }}"
+  namespace: "{{ target_namespace | default('default') }}"
 spec:
   replicas: {{ replicas }}
   selector:
     matchLabels:
-      app: debugocp
+      app: demoapp
   template:
     metadata:
       labels:
-        app: debugocp
+        app: demoapp
     spec:
       containers:
-        - name: debugocp
-          image: docker.io/lasher/busybox
+        - name: demoapp
+          image: {{ image | default('image-registry.openshift-image-registry.svc:5000/demo-build/busybox-worker2') }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REQUEST_M
+              value: "0"
+            - name: LIMIT_M
+              value: "0"
+            - name: MEM_TARGET_MB
+              value: "200"
+            - name: MEMORY_MB
+              value: "{{ memory_mb | default('0') }}"
 

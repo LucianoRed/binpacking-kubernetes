@@ -1,38 +1,43 @@
 ---
-- name: Generate Deployment files
+- name: Run binpacking simulation (generate + deploy)
   hosts: localhost
   gather_facts: false
   vars:
-    num_deployments_besteffort: 3  # Número total de deployments a serem criados besteffort
-    num_deployments_burstable: 3  # Número total de deployments a serem criados burstable
-    num_deployments_guaranteed: 3  # Número total de deployments a serem criados guaranteed
-    num_replicas_besteffort: 20  # Número total de deployments a serem criados besteffort
-    num_replicas_burstable: 30  # Número total de deployments a serem criados burstable
-    num_replicas_guaranteed: 10  # Número total de deployments a serem criados guaranteed
-    image_name: "local/busybox-worker:latest"
     num_namespaces: 5
     namespace_prefix: "demo"
+    image_name: "image-registry.openshift-image-registry.svc:5000/demo-build/busybox-worker2"
+    build_image: true
+    num_replicas_besteffort: 5
+    num_replicas_burstable: 10
+    num_replicas_guaranteed: 10
+    # Memory defaults (MiB) tuned for 4-core, 16Gi nodes to avoid excessive Pending
+    memory_besteffort_mib: 0
+    memory_burstable_mib: 256
+    memory_guaranteed_mib: 256
+    # If true, only generate manifests under deploy/ and do not apply to cluster
+    generate_only: true
   tasks:
-    - name: Create deploy directory
+    - name: Ensure deploy directory exists
       ansible.builtin.file:
         path: deploy
         state: directory
 
-    - name: Build worker image (docker CLI)
-      ansible.builtin.command:
-        cmd: "docker build -t {{ image_name }} docker-image-busybox"
-      register: docker_build
-      changed_when: docker_build.rc == 0
-      failed_when: docker_build.rc != 0
+    # - name: Optionally build worker image
+    #   ansible.builtin.command:
+    #     cmd: "docker build -t {{ image_name }} docker-image-busybox"
+    #   register: docker_build
+    #   changed_when: docker_build.rc == 0
+    #   failed_when: docker_build.rc != 0
+    #   when: build_image
 
-    - name: Create namespaces
+    - name: Create namespaces on cluster
       ansible.builtin.shell: |
         for i in $(seq 0 $(( {{ num_namespaces }} - 1 ))); do
           ns="{{ namespace_prefix }}-$i"; kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f - ;
         done
       changed_when: false
 
-    - name: Generate deployments for each namespace (explicit loop)
+    - name: Generate manifests per namespace (explicit)
       vars:
         ns_range: "{{ range(num_namespaces) }}"
       block:
@@ -51,6 +56,7 @@
             deployment_name: "besteffort-{{ item }}"
             replicas: "{{ num_replicas_besteffort }}"
             target_namespace: "{{ namespace_prefix }}-{{ item }}"
+            memory_mb: "{{ memory_besteffort_mib }}"
 
         - name: Generate burstable deployment per namespace
           ansible.builtin.template:
@@ -59,10 +65,11 @@
           loop: "{{ ns_range }}"
           vars:
             deployment_name: "burstable-{{ item }}"
-            request: "{{ 100 * (range(1, 21) | random) }}"
+            # smaller CPU request range: 10m..100m
+            request: "{{ (range(10, 101) | random) }}"
             replicas: "{{ num_replicas_burstable }}"
             target_namespace: "{{ namespace_prefix }}-{{ item }}"
-            image: "busybox"
+            memory_mb: "{{ memory_burstable_mib }}"
 
         - name: Generate guaranteed deployment per namespace
           ansible.builtin.template:
@@ -71,8 +78,24 @@
           loop: "{{ ns_range }}"
           vars:
             deployment_name: "guaranteed-{{ item }}"
-            request: "{{ 100 * (range(1, 21) | random) }}"
+            # guaranteed pods: slightly larger requests but still modest: 50m..200m
+            request: "{{ (range(50, 201) | random) }}"
             replicas: "{{ num_replicas_guaranteed }}"
             target_namespace: "{{ namespace_prefix }}-{{ item }}"
-            image: "busybox"
+            memory_mb: "{{ memory_guaranteed_mib }}"
 
+    - name: Apply manifests per-namespace (using oc)
+      ansible.builtin.shell: |
+        for d in deploy/{{ namespace_prefix }}-*; do
+          echo "Applying $d";
+          oc apply -f "$d";
+        done
+      register: apply_output
+
+    - name: Show apply output
+      ansible.builtin.debug:
+        var: apply_output.stdout_lines
+
+    - name: Show rollout wait output
+      ansible.builtin.debug:
+        var: rollout_wait.stdout_lines

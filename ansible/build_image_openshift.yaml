@@ -1,0 +1,65 @@
+---
+- name: Build busybox-worker inside OpenShift using Binary build
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    build_namespace: demo-build
+    imagestream_file: ansible/openshift/imagestream_busybox_worker.yaml
+    buildconfig_file: ansible/openshift/buildconfig_busybox_worker.yaml
+    # Directory containing Dockerfile and worker.py
+    build_context_dir: ansible/docker-image-busybox
+  tasks:
+    - name: Ensure oc is available
+      command: oc version --client
+      register: oc_client
+      changed_when: false
+
+    - name: Create build namespace
+      command: oc new-project {{ build_namespace }}
+      register: newproj
+      failed_when: false
+
+    - name: Apply ImageStream (via stdin)
+      shell: cat {{ imagestream_file }} | oc apply -n {{ build_namespace }} -f -
+
+    - name: Apply BuildConfig (via stdin)
+      shell: cat {{ buildconfig_file }} | oc apply -n {{ build_namespace }} -f -
+
+    - name: Create binary tar of build context
+      command: tar -C {{ build_context_dir }} -czf /tmp/busybox-worker-src.tar.gz .
+
+    - name: Start binary build (use --from-archive)
+      shell: |
+        oc start-build busybox-worker -n {{ build_namespace }} --from-archive=/tmp/busybox-worker-src.tar.gz
+      register: start_build
+
+    - name: Get latest build name
+      command: oc get builds -n {{ build_namespace }} -l buildconfig=busybox-worker -o jsonpath='{.items[-1].metadata.name}'
+      register: latest_build
+      retries: 6
+      delay: 5
+      until: latest_build.stdout is defined and latest_build.stdout | length > 0
+
+    - name: Stream build logs until finished
+      shell: oc logs -f build/{{ latest_build.stdout }} -n {{ build_namespace }}
+      register: build_logs
+      failed_when: build_logs.rc != 0
+      changed_when: false
+
+    - name: Show build logs tail
+      shell: tail -n 40 /tmp/busybox-worker-src.tar.gz || true
+      failed_when: false
+      changed_when: false
+
+    - name: Show image in ImageStream
+      command: oc get is busybox-worker -n {{ build_namespace }} -o yaml
+      register: is_info
+      failed_when: false
+
+    - name: Print ImageStream info
+      debug:
+        var: is_info.stdout_lines
+
+  tags:
+    - build

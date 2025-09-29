@@ -1,0 +1,45 @@
+---
+# Helper tasks to generate manifests for each namespace in ns_list
+- name: Ensure namespace deploy subdir exists
+  file:
+    path: "deploy/{{ namespace_prefix }}-{{ item }}"
+    state: directory
+  loop: "{{ ns_list }}"
+  run_once: true
+
+- name: Generate besteffort deployments in namespace
+  ansible.builtin.template:
+    src: templates/besteffort.j2
+    dest: "deploy/{{ namespace_prefix }}-{{ item }}/besteffort-{{ item }}.yaml"
+  loop: "{{ ns_list }}"
+  vars:
+    deployment_name: "besteffort-{{ item }}"
+    replicas: "{{ num_replicas_besteffort }}"
+    target_namespace: "{{ namespace_prefix }}-{{ item }}"
+  run_once: true
+
+- name: Generate burstable deployments in namespace
+  ansible.builtin.template:
+    src: templates/burstable.j2
+    dest: "deploy/{{ namespace_prefix }}-{{ item }}/burstable-{{ item }}.yaml"
+  loop: "{{ ns_list }}"
+  vars:
+    deployment_name: "burstable-{{ item }}"
+    request: "{{ 100 * (range(1, 21) | random) }}"
+    replicas: "{{ num_replicas_burstable }}"
+    target_namespace: "{{ namespace_prefix }}-{{ item }}"
+    image: "{{ image_name }}"
+  run_once: true
+
+- name: Generate guaranteed deployments in namespace
+  ansible.builtin.template:
+    src: templates/guaranteed.j2
+    dest: "deploy/{{ namespace_prefix }}-{{ item }}/guaranteed-{{ item }}.yaml"
+  loop: "{{ ns_list }}"
+  vars:
+    deployment_name: "guaranteed-{{ item }}"
+    request: "{{ 100 * (range(1, 21) | random) }}"
+    replicas: "{{ num_replicas_guaranteed }}"
+    target_namespace: "{{ namespace_prefix }}-{{ item }}"
+    image: "{{ image_name }}"
+  run_once: true

@@ -1,0 +1,97 @@
+---
+- name: Publish local image to OpenShift internal registry
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # Image on local Docker to push
+    local_image: "local/busybox-worker:latest"
+    # Optional: explicitly set target project (namespace) in OpenShift.
+    # If empty, the current `oc project -q` will be used.
+    target_project: ""
+    # Optional: explicitly set destination image (overrides auto calculation)
+    dest_image: ""
+    # Tag to use on destination (only used when dest_image not provided)
+    tag: "latest"
+  tasks:
+    - name: Ensure oc client is available
+      command: oc version --client
+      register: oc_client
+      changed_when: false
+
+    - name: Get OpenShift registry host
+      command: oc registry info
+      register: registry_info
+
+    - name: List all routes in openshift-image-registry namespace (for public registry hosts)
+      command: oc get route -n openshift-image-registry -o jsonpath='{range .items[*]}{.spec.host}{"\n"}{end}'
+      register: registry_routes
+      failed_when: false
+      changed_when: false
+
+    - name: Compute first public registry host from routes (if any)
+      set_fact:
+        registry_route_host: >-
+          {{ (registry_routes.stdout_lines[0]) if (registry_routes.stdout_lines is defined and registry_routes.stdout_lines | length > 0 and (registry_routes.stdout_lines[0] | length) > 0) else '' }}
+
+    - name: Set registry_host fact (prefer public route if available) if not provided
+      set_fact:
+        registry_host: >-
+          {{ registry_route_host if (registry_route_host is defined and registry_route_host | length > 0) else registry_info.stdout }}
+      when: registry_host is not defined or registry_host == ''
+
+    - name: Fail if registry info not found
+      fail:
+        msg: "Could not detect OpenShift registry. Make sure you are logged in with 'oc login'."
+      when: registry_info.rc != 0 or registry_info.stdout is not defined
+
+    - name: Determine target project (use current oc project if not provided)
+      command: oc project -q
+      register: current_project
+      when: target_project == ""
+
+    - name: Set project fact
+      set_fact:
+        project: "{{ target_project if target_project|length > 0 else current_project.stdout }}"
+
+    - name: Compute destination image (if not provided)
+      set_fact:
+        dest_image: >-
+          {{ dest_image if dest_image | length > 0 else ( (registry_host if (registry_host is defined and registry_host | length > 0) else registry_info.stdout) + '/' + project + '/' + (local_image.split(':')[0].split('/')[-1]) + ':' + tag) }}
+
+    - name: Show planned push target
+      debug:
+        msg: "Pushing local image '{{ local_image }}' -> '{{ dest_image }}' on registry '{{ registry_host }}' in project '{{ project }}'"
+
+    - name: Login to OpenShift registry using oc token (use password-stdin)
+      shell: |
+        set -o pipefail
+        oc whoami -t | docker login --username "$(oc whoami)" --password-stdin {{ registry_host }}
+      register: docker_login
+      failed_when: docker_login.rc != 0
+      changed_when: "'Login Succeeded' in docker_login.stdout or 'succeeded' in docker_login.stdout.lower()"
+
+    - name: Tag local image to destination
+      command: docker tag {{ local_image }} {{ dest_image }}
+
+    - name: Push image to OpenShift registry
+      command: docker push {{ dest_image }}
+      register: docker_push
+
+    - name: Show push result
+      debug:
+        var: docker_push.stdout_lines
+
+    - name: Ensure image is visible in OpenShift (short check)
+      command: oc image info {{ dest_image }}
+      register: image_info
+      failed_when: false
+      changed_when: false
+
+    - name: Show image info output (if available)
+      debug:
+        var: image_info.stdout_lines
+
+  tags:
+    - publish
+    - openshift

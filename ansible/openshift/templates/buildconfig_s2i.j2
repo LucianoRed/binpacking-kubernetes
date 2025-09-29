@@ -1,0 +1,52 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ app_name }}
+  namespace: {{ namespace }}
+spec:
+  runPolicy: Serial
+  {{- if source_type == 'git' }}
+  source:
+    apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: {{ app_name }}
+      namespace: {{ namespace }}
+    spec:
+      runPolicy: Serial
+      {% if source_type == 'git' %}
+      source:
+        type: Git
+        git:
+          uri: "{{ git_repo }}"
+      {% else %}
+      source:
+        type: Binary
+      {% endif %}
+      strategy:
+        apiVersion: build.openshift.io/v1
+        kind: BuildConfig
+        metadata:
+          name: {{ app_name }}
+          namespace: {{ namespace }}
+        spec:
+          runPolicy: Serial
+          {% if source_type == 'git' %}
+          source:
+            type: Git
+            git:
+              uri: "{{ git_repo }}"
+          {% else %}
+          source:
+            type: Binary
+          {% endif %}
+          strategy:
+            type: Source
+            sourceStrategy:
+              from:
+                kind: ImageStreamTag
+                name: "{{ builder_image }}"
+          output:
+            to:
+              kind: ImageStreamTag
+              name: "{{ app_name }}:{{ tag }}"

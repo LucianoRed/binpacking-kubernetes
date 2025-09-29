@@ -1,0 +1,83 @@
+---
+- name: Build image using S2I buildconfig template
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    namespace: demo-build
+    app_name: busybox-worker
+    builder_image: 'python:3.11'
+    tag: latest
+    source_type: binary   # 'binary' or 'git'
+    git_repo: ''
+    build_context_dir: ansible/docker-image-busybox
+  tasks:
+    - name: Ensure oc is available
+      command: oc version --client
+      changed_when: false
+
+    - name: Create namespace
+      command: oc new-project {{ namespace }}
+      failed_when: false
+
+    - name: Create ImageStream
+      shell: |
+        cat <<'EOF' | oc apply -n {{ namespace }} -f -
+        apiVersion: image.openshift.io/v1
+        kind: ImageStream
+        metadata:
+          name: {{ app_name }}
+        spec: {}
+        EOF
+
+    - name: Render BuildConfig template
+      template:
+        src: ansible/openshift/templates/buildconfig_s2i.j2
+        dest: /tmp/{{ app_name }}-buildconfig.yaml
+      vars:
+        namespace: "{{ namespace }}"
+        app_name: "{{ app_name }}"
+        builder_image: "{{ builder_image }}"
+        tag: "{{ tag }}"
+        source_type: "{{ source_type }}"
+        git_repo: "{{ git_repo }}"
+
+    - name: Apply BuildConfig
+      shell: cat /tmp/{{ app_name }}-buildconfig.yaml | oc apply -n {{ namespace }} -f -
+
+    - name: Create tar of build context (if binary)
+      when: source_type == 'binary'
+      command: tar -C {{ build_context_dir }} -czf /tmp/{{ app_name }}-src.tar.gz .
+
+    - name: Start build (binary)
+      when: source_type == 'binary'
+      shell: oc start-build {{ app_name }} -n {{ namespace }} --from-archive=/tmp/{{ app_name }}-src.tar.gz
+      register: start_build
+
+    - name: Start build (git)
+      when: source_type == 'git'
+      shell: oc start-build {{ app_name }} -n {{ namespace }} --from-git={{ git_repo }}
+      register: start_build
+
+    - name: Get latest build
+      command: oc get builds -n {{ namespace }} -l buildconfig={{ app_name }} -o jsonpath='{.items[-1].metadata.name}'
+      register: latest_build
+      retries: 10
+      delay: 5
+      until: latest_build.stdout is defined and latest_build.stdout | length > 0
+
+    - name: Stream build logs
+      shell: oc logs -f build/{{ latest_build.stdout }} -n {{ namespace }}
+      register: build_logs
+      failed_when: build_logs.rc != 0
+
+    - name: Show ImageStream
+      command: oc get is {{ app_name }} -n {{ namespace }} -o yaml
+      register: is_info
+
+    - name: Print ImageStream info
+      debug:
+        var: is_info.stdout_lines
+
+  tags:
+    - s2i
