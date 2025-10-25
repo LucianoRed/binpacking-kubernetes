@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <a href="../index.php" style="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:6px;background:#e53e3e;color:#fff;text-decoration:none;font-weight:600;z-index:9999">Índice</a>
     <label for="maxRatio">Max Bin Pack Ratio:</label>
     <input type="number" id="maxRatio" step="0.1" value="0.8" min="0" max="1" style="margin-right: 10px;">
     <button onclick="loadItems()">Recarregar Itens</button>
