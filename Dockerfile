@@ -13,6 +13,10 @@ COPY --chown=phpuser:phpuser . /var/www/html
 # Expor a porta 8080 para acessar o PHP via HTTP
 EXPOSE 8080
 
+ENV K8S_API_URL="https://api.asdas.asdas.asdasda.com:6443"
+ENV K8S_BEARER_TOKEN="sha256~GQnsSetBpUj_CdhcGOMgwasdasdasdasdcwE"
+ENV K8S_SKIP_TLS_VERIFY=1  
+
 # Alterar para o usuário não privilegiado antes de iniciar o servidor PHP
 USER phpuser
 
