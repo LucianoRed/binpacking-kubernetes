@@ -30,6 +30,8 @@ npm start
 ## Docker
 
 Build da imagem (na pasta `mcp-server-k8s-live/`):
+## Como gerar/atualizar o conteúdo de `src/`
+
 
 ```sh
 docker build -t mcp-server-k8s-live:latest .
