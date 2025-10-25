@@ -1,0 +1,37 @@
+/* Estilos específicos (complementares) para a visão live */
+.col{flex:0 0 220px}
+.col-title{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.col-title small{color:var(--muted);font-weight:400}
+.col-title .ratio{color:#fde047;font-weight:700} /* binpacking ratio (requests) em amarelo */
+.col-title .eff{color:#86efac;font-weight:700} /* uso efetivo em verde claro */
+
+.pods-grid{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;align-content:flex-start;height:280px;overflow:hidden}
+.pod{border-radius:4px;background:linear-gradient(180deg,#90cdf4,#63b3ed);box-shadow:0 1px 2px rgba(0,0,0,0.2);transform:scale(1);opacity:1}
+.pod.running{background:linear-gradient(180deg,#90cdf4,#63b3ed)} /* azul sempre */
+.pod.creating{background:linear-gradient(180deg,#f8fafc,#e2e8f0)} /* branco/cinza claro */
+.pod.zero{background:linear-gradient(180deg,#e2e8f0,#cbd5e1)} /* mantido para compatibilidade se usado */
+/* terminating pods */
+.pod.terminating{background:linear-gradient(180deg,#fef9c3,#fde047)}
+/* pending pods */
+.pending-grid{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;align-content:flex-start;min-height:120px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.pod.pending{background:linear-gradient(180deg,#feb2b2,#fc8181)}
+
+/* animação para novos pods */
+.pod.new{animation:fadeScaleIn .45s ease-out both}
+@keyframes fadeScaleIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+
+/* tooltip custom */
+#tooltip{position:fixed;pointer-events:none;opacity:0;transition:opacity .12s;z-index:10000;
+	background:rgba(15,23,36,.96);color:#e6eef6;border:1px solid rgba(255,255,255,0.08);
+	padding:8px 10px;border-radius:8px;max-width:320px;white-space:pre;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:.85rem}
+
+@media (max-width:880px){
+	.pods-grid{height:220px}
+}
+
+	/* overlay de carregamento */
+	.loading{position:fixed;inset:0;background:rgba(7,12,20,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;gap:10px;z-index:20000;opacity:1;visibility:visible;transition:opacity .12s, visibility .12s}
+	.loading.hidden{opacity:0;visibility:hidden}
+	.loading .loader{width:28px;height:28px;border:3px solid rgba(255,255,255,.25);border-top-color:#e53e3e;border-radius:50%;animation:spin .8s linear infinite}
+	.loading .msg{color:#fff;font-weight:600}
+	@keyframes spin{to{transform:rotate(360deg)}}

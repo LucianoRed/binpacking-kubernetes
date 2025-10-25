@@ -8,8 +8,8 @@
     image_name: "image-registry.openshift-image-registry.svc:5000/demo-build/busybox-worker2"
     build_image: true
     num_replicas_besteffort: 5
-    num_replicas_burstable: 10
-    num_replicas_guaranteed: 10
+    num_replicas_burstable: 15
+    num_replicas_guaranteed: 15
     # Memory defaults (MiB) tuned for 4-core, 16Gi nodes to avoid excessive Pending
     memory_besteffort_mib: 0
     memory_burstable_mib: 256
