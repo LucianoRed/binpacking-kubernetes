@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: demoapp
-          image: {{ image | default('image-registry.openshift-image-registry.svc:5000/demo-build/busybox-worker2') }}
+          image: {{ image | default('image-registry.openshift-image-registry.svc:5000/demo-build/busybox-worker') }}
           imagePullPolicy: IfNotPresent
           env:
             - name: REQUEST_M
@@ -23,7 +23,7 @@ spec:
             - name: LIMIT_M
               value: "0"
             - name: MEM_TARGET_MB
-              value: "200"
+              value: "150"
             - name: MEMORY_MB
               value: "{{ memory_mb | default('0') }}"
 

@@ -87,6 +87,10 @@ function renderPending(data){
   if(!el) return;
   el.innerHTML = '';
   const list = data.pending || [];
+  const titleEl = document.getElementById('pendingTitle');
+  if (titleEl) {
+    titleEl.textContent = `Pending (${list.length})`;
+  }
   if(list.length === 0){
     el.textContent = 'Nenhum pod em Pending.';
     return;

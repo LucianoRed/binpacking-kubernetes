@@ -63,7 +63,7 @@ $maskedUrl = $apiUrl ? htmlspecialchars($apiUrl, ENT_QUOTES, 'UTF-8') : 'não co
         <h3>Observações</h3>
         <div id="notes" class="unallocated-list">Pods sem requests são contados como 0 na métrica escolhida.</div>
         <div style="height:10px"></div>
-        <h3>Pending</h3>
+        <h3 id="pendingTitle">Pending</h3>
         <div id="pendingGrid" class="pending-grid">Nenhum pod em Pending.</div>
       </aside>
     </section>

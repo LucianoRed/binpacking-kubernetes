@@ -8,12 +8,12 @@
     image_name: "image-registry.openshift-image-registry.svc:5000/demo-build/busybox-worker2"
     build_image: true
     num_replicas_besteffort: 5
-    num_replicas_burstable: 15
-    num_replicas_guaranteed: 15
+    num_replicas_burstable: 10
+    num_replicas_guaranteed: 10
     # Memory defaults (MiB) tuned for 4-core, 16Gi nodes to avoid excessive Pending
     memory_besteffort_mib: 0
     memory_burstable_mib: 256
-    memory_guaranteed_mib: 256
+    memory_guaranteed_mib: 512
     # If true, only generate manifests under deploy/ and do not apply to cluster
     generate_only: true
   tasks:
@@ -66,7 +66,7 @@
           vars:
             deployment_name: "burstable-{{ item }}"
             # smaller CPU request range: 10m..100m
-            request: "{{ (range(10, 101) | random) }}"
+            request: "{{ (range(80, 201) | random) }}"
             replicas: "{{ num_replicas_burstable }}"
             target_namespace: "{{ namespace_prefix }}-{{ item }}"
             memory_mb: "{{ memory_burstable_mib }}"
@@ -79,7 +79,7 @@
           vars:
             deployment_name: "guaranteed-{{ item }}"
             # guaranteed pods: slightly larger requests but still modest: 50m..200m
-            request: "{{ (range(50, 201) | random) }}"
+            request: "{{ (range(50, 150) | random) }}"
             replicas: "{{ num_replicas_guaranteed }}"
             target_namespace: "{{ namespace_prefix }}-{{ item }}"
             memory_mb: "{{ memory_guaranteed_mib }}"
