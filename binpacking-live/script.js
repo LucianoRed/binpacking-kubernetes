@@ -21,22 +21,50 @@ async function fetchLive(){
   return res.json();
 }
 
+// hash estável para embaralhar dentro de cada grupo sem flicker entre atualizações
+function stableHash(s){
+  if(!s) return 0;
+  let h = 5381;
+  for(let i=0;i<s.length;i++){
+    h = ((h << 5) + h) + s.charCodeAt(i);
+    h = h | 0; // força 32-bit
+  }
+  return h >>> 0; // unsigned
+}
+
 function renderBins(data){
   const bins = q('bins');
   clearEl(bins);
   const nextPods = new Set();
-  data.bins.forEach((b, i)=>{
+  // montar pares (node/bin) para poder ordenar por grupos de função
+  const entries = (data.bins || []).map((b, i)=>{
+    const node = (data.nodes || [])[i] || {};
+    const role = node.role || 'Worker';
+    const roleGroup = (role === 'Worker') ? 0 : (role === 'Master' ? 1 : 2);
+    // hash estável por nome/ip para pseudo-aleatoriedade estável dentro do grupo
+    const key = (node.name || '') + '|' + (node.ip || '') + '|' + i;
+    const weight = stableHash(key);
+    return { b, i, node, role, roleGroup, weight };
+  });
+
+  // ordenar: Workers (0), Masters (1), Infra (2); dentro do grupo, por peso estável
+  entries.sort((a, b)=>{
+    if(a.roleGroup !== b.roleGroup) return a.roleGroup - b.roleGroup;
+    if(a.weight !== b.weight) return a.weight - b.weight;
+    return a.i - b.i; // fallback estável
+  });
+
+  entries.forEach(({ b, i, node, role })=>{
     const col = document.createElement('div');
     // Classe base + classe por função do nó (Worker/Master/InfraNode)
     const title = document.createElement('div');
     title.className='col-title';
-  const role = data.nodes[i]?.role || 'Worker';
   const roleClass = (role === 'Worker') ? 'col-worker' : (role === 'Master' ? 'col-master' : 'col-infra');
   const badgeClass = roleClass.replace('col-','role-');
   col.className = `col ${roleClass}`;
-  const ip = data.nodes[i]?.ip || 'N/A';
-  const usedPct = (data.nodes[i]?.usedPct ?? null);
-  const usedEffPct = (data.nodes[i]?.usedEffPct ?? null);
+  const ip = node?.ip || 'N/A';
+  const usedPct = (node?.usedPct ?? null);
+  const usedEffPct = (node?.usedEffPct ?? null);
   const rp = usedPct!==null ? `<span class="ratio">${usedPct}%</span>` : '';
   const ep = usedEffPct!==null ? `<span class="eff">${usedEffPct}%</span>` : '<span class="eff">N/A</span>';
   const roleBadge = `<span class="role-badge ${badgeClass}">${role}</span>`;
