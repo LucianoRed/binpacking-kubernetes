@@ -6,13 +6,15 @@
 .col-title .eff{color:#86efac;font-weight:700} /* uso efetivo em verde claro */
 
 /* Diferenciação visual por tipo de nó */
-.col-worker{background:rgba(255,255,255,0.055) !important;border-color:rgba(255,255,255,0.16) !important}
-.col-master{background:rgba(255,255,255,0.035) !important;border-color:rgba(229,62,62,0.35) !important}
-.col-infra{background:rgba(255,255,255,0.035) !important;border-color:rgba(56,189,248,0.30) !important}
+/* Worker: mais destaque (fundo mais claro, borda mais visível, sombra mais forte) */
+.col-worker{background:rgba(255,255,255,0.08) !important;border-color:rgba(255,255,255,0.24) !important;box-shadow:0 8px 24px rgba(2,6,23,0.75) !important;border-top:2px solid rgba(255,255,255,0.28) !important}
+/* Master/Infra: levemente mais apagados (fundo mais escuro, borda discreta, sombra menor) */
+.col-master{background:rgba(255,255,255,0.025) !important;border-color:rgba(229,62,62,0.25) !important;box-shadow:0 2px 8px rgba(2,6,23,0.45) !important}
+.col-infra{background:rgba(255,255,255,0.025) !important;border-color:rgba(56,189,248,0.22) !important;box-shadow:0 2px 8px rgba(2,6,23,0.45) !important}
 
 /* Badge com papel do nó */
 .role-badge{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:.75rem;font-weight:800;letter-spacing:.02em;border:1px solid rgba(255,255,255,0.08)}
-.role-worker{background:rgba(255,255,255,0.10);color:#e6eef6}
+.role-worker{background:rgba(255,255,255,0.16);color:#ffffff;border-color:rgba(255,255,255,0.28)}
 .role-master{background:rgba(229,62,62,0.22);color:#fff;border-color:rgba(229,62,62,0.45)}
 .role-infra{background:rgba(56,189,248,0.18);color:#e6f9ff;border-color:rgba(56,189,248,0.4)}
 
