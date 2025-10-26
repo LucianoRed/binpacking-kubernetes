@@ -27,16 +27,20 @@ function renderBins(data){
   const nextPods = new Set();
   data.bins.forEach((b, i)=>{
     const col = document.createElement('div');
-    col.className='col';
+    // Classe base + classe por função do nó (Worker/Master/InfraNode)
     const title = document.createElement('div');
     title.className='col-title';
   const role = data.nodes[i]?.role || 'Worker';
+  const roleClass = (role === 'Worker') ? 'col-worker' : (role === 'Master' ? 'col-master' : 'col-infra');
+  const badgeClass = roleClass.replace('col-','role-');
+  col.className = `col ${roleClass}`;
   const ip = data.nodes[i]?.ip || 'N/A';
   const usedPct = (data.nodes[i]?.usedPct ?? null);
   const usedEffPct = (data.nodes[i]?.usedEffPct ?? null);
   const rp = usedPct!==null ? `<span class="ratio">${usedPct}%</span>` : '';
   const ep = usedEffPct!==null ? `<span class="eff">${usedEffPct}%</span>` : '<span class="eff">N/A</span>';
-  title.innerHTML = `${role} • ${ip} ${rp?('• '+rp):''} • ${ep}`;
+  const roleBadge = `<span class="role-badge ${badgeClass}">${role}</span>`;
+  title.innerHTML = `${roleBadge} • ${ip} ${rp?('• '+rp):''} • ${ep}`;
     col.appendChild(title);
 
     const grid = document.createElement('div');
