@@ -1,5 +1,5 @@
 # Use a imagem oficial do PHP
-FROM php:latest
+FROM php:8.4-cli
 
 # Adicionar um usuário não privilegiado
 RUN useradd -ms /bin/bash phpuser
